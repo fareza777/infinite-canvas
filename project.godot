@@ -1,0 +1,73 @@
+; Engine configuration file.
+; Ultimate Infinite Canvas 3D Pro
+config_version=5
+
+[application]
+
+config/name="Ultimate Infinite Canvas 3D Pro"
+config/description="A premium hybrid infinite 2D + 3D spatial canvas for notes, mind maps, storyboards and real 3D objects."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://assets/icon_1024.png"
+boot_splash/bg_color=Color(0.984, 0.973, 0.949, 1)
+boot_splash/show_image=true
+boot_splash/image="res://assets/splash.png"
+boot_splash/fullsize=true
+boot_splash/use_filter=true
+config/version="3.2.0"
+
+[display]
+
+window/size/viewport_width=432
+window/size/viewport_height=960
+window/size/window_width_override=432
+window/size/window_height_override=960
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=5
+window/vsync/vsync_mode=1
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.949, 0.937, 0.91, 1)
+anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/msaa_2d=0
+textures/canvas_textures/default_texture_filter=1
+driver/depth_prepass/enable=false
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+theme/default_font_subpixel_positioning=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+pointing/android/enable_long_press_as_right_click=false
+
+[file_customization]
+
+folder_colors={
+"res://assets/": "cyan",
+"res://scripts/": "purple"
+}
+
+[internationalization]
+
+locale/fallback="en"
+
+[application_run]
+
+disable_stdout=false
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/GodotGooglePlayBilling/plugin.cfg")

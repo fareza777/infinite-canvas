@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFDF8"/>
+      <stop offset="0.55" stop-color="#F3F6FF"/>
+      <stop offset="1" stop-color="#E7EDFF"/>
+    </linearGradient>
+    <linearGradient id="plane" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2F5BFF"/>
+      <stop offset="0.52" stop-color="#6459FF"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="goldTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE7A8"/>
+      <stop offset="1" stop-color="#F4C356"/>
+    </linearGradient>
+    <linearGradient id="goldLeft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E7A73C"/>
+      <stop offset="1" stop-color="#C97922"/>
+    </linearGradient>
+    <linearGradient id="goldRight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC766"/>
+      <stop offset="1" stop-color="#DB922F"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F8F7FF"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="softer" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <rect x="14" y="14" width="996" height="996" rx="216" fill="none" stroke="#17213A" stroke-opacity="0.06" stroke-width="3"/>
+  <circle cx="300" cy="230" r="240" fill="#FFFFFF" opacity="0.45" filter="url(#softer)"/>
+  <g>
+    <ellipse cx="520" cy="720" rx="300" ry="52" fill="#17213A" opacity="0.10" filter="url(#soft)"/>
+    <path d="M 178 596 L 500 782 L 858 574 L 538 390 Z" fill="url(#plane)"/>
+    <path d="M 178 596 L 500 782 L 858 574" fill="none" stroke="#FFFFFF" stroke-opacity="0.42" stroke-width="5" stroke-linejoin="round"/>
+    <g stroke="#FFFFFF" stroke-opacity="0.20" stroke-width="3">
+      <path d="M 306 526 L 628 708"/>
+      <path d="M 434 456 L 756 638"/>
+      <path d="M 662 690 L 838 592"/>
+      <path d="M 572 640 L 748 542"/>
+      <path d="M 482 590 L 658 492"/>
+    </g>
+    <g transform="rotate(-8 500 500)">
+      <rect x="320" y="368" width="368" height="252" rx="42" fill="#17213A" opacity="0.16" filter="url(#soft)"/>
+      <rect x="320" y="356" width="368" height="252" rx="42" fill="url(#card)"/>
+      <rect x="320" y="356" width="34" height="252" rx="17" fill="#FF7A59"/>
+      <rect x="386" y="414" width="228" height="19" rx="9.5" fill="#17213A" opacity="0.86"/>
+      <rect x="386" y="458" width="170" height="14" rx="7" fill="#7C8798"/>
+      <rect x="386" y="490" width="205" height="14" rx="7" fill="#7C8798" opacity="0.66"/>
+      <rect x="386" y="534" width="102" height="26" rx="13" fill="#2F5BFF" opacity="0.14"/>
+      <circle cx="404" cy="547" r="6" fill="#2F5BFF"/>
+      <rect x="618" y="536" width="42" height="24" rx="12" fill="#2F5BFF" opacity="0.18"/>
+    </g>
+    <g>
+      <ellipse cx="706" cy="430" rx="112" ry="30" fill="#17213A" opacity="0.12" filter="url(#soft)"/>
+      <path d="M 706 236 L 798 288 L 706 340 L 614 288 Z" fill="url(#goldTop)"/>
+      <path d="M 614 288 L 706 340 L 706 446 L 614 394 Z" fill="url(#goldLeft)"/>
+      <path d="M 798 288 L 706 340 L 706 446 L 798 394 Z" fill="url(#goldRight)"/>
+      <path d="M 706 236 L 798 288 L 706 340 L 614 288 Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.40" stroke-width="4"/>
+    </g>
+    <g>
+      <path d="M 278 286 L 292 326 L 332 340 L 292 354 L 278 394 L 264 354 L 224 340 L 264 326 Z" fill="#FFFFFF" opacity="0.95"/>
+      <path d="M 278 286 L 292 326 L 332 340 L 292 354 L 278 394 L 264 354 L 224 340 L 264 326 Z" fill="#2F5BFF" opacity="0.28"/>
+    </g>
+  </g>
+</svg>

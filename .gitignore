@@ -1,0 +1,33 @@
+# Godot
+.godot/
+**/.godot/
+*.translation
+export_credentials.cfg
+
+# Build outputs (APK/AAB, zips, signed artifacts, keystore, notes)
+/build/
+*.apk
+*.aab
+*.idsig
+*.keystore
+*.jks
+
+# Android / Gradle: generated output only, the template sources stay tracked
+android/build/.gradle/
+android/build/**/build/
+android/build/local.properties
+android/build/*.iml
+
+# Godot Android template binaries (~210 MB; reinstall with the official
+# Android build template: Project > Install Android Build Template)
+android/build/libs/**/*.aar
+
+# Tooling noise
+.commandcode/
+.vscode/
+.idea/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log
