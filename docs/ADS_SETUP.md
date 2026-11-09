@@ -1,48 +1,126 @@
-# AdMob + Remove Ads setup
+# AdMob, UMP consent, and Remove Ads
 
-Version 3.2.0 ships with real Google Mobile Ads code and Google's official **test IDs**.
-Test ads are served by the live SDK (so the integration is real), but they do not earn
-revenue and must not be published as production monetisation.
+Version **3.3.0** (versionCode **6**) ships with real Google Mobile Ads + User Messaging
+Platform code. Debug builds default to Google's official **test IDs**. A **release**
+Gradle build **fails** if those test IDs are still in use.
 
-## 1. Replace the test IDs
+Package name stays `com.fajar.ultimatecanvas3d`.
 
-### AdMob application ID
+## 1. Production IDs (do not hardcode)
 
-`android/build/src/main/AndroidManifest.xml`:
+Create an AdMob app for `com.fajar.ultimatecanvas3d`, then a banner, interstitial and
+rewarded unit. Pass the four IDs at build time — they are **not** stored in git.
 
-```xml
-<meta-data
-    android:name="com.google.android.gms.ads.APPLICATION_ID"
-    android:value="ca-app-pub-3940256099942544~3347511713" />
+### Option A — gitignored `admob.properties` (recommended for Godot export)
+
+Copy [`admob.properties.example`](../admob.properties.example) to **`admob.properties`**
+at the Godot project root (or `android/build/admob.properties`):
+
+```
+admobAppId=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+admobBanner=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz
+admobInterstitial=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz
+admobRewarded=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz
 ```
 
-Replace with the App ID from **AdMob → Apps → your app → App settings**.
+`admob.properties` is gitignored. Gradle reads it during the Godot Android export.
 
-### Ad unit IDs
+### Option B — Gradle `-P` flags
 
-`android/build/src/main/java/com/godot/game/AdBridge.java`:
-
-```java
-public static final String BANNER_UNIT = ".../6300978111";
-public static final String INTERSTITIAL_UNIT = ".../1033173712";
-public static final String REWARDED_UNIT = ".../5224354917";
+```text
+-PadmobAppId=ca-app-pub-xxxx~yyyy
+-PadmobBanner=ca-app-pub-xxxx/yyyy
+-PadmobInterstitial=ca-app-pub-xxxx/yyyy
+-PadmobRewarded=ca-app-pub-xxxx/yyyy
 ```
 
-Replace all three with your own ad-unit IDs. They must belong to the same AdMob app.
+### Option C — environment variables
 
-## 2. Ad formats in this build
+`ADMOB_APP_ID`, `ADMOB_BANNER`, `ADMOB_INTERSTITIAL`, `ADMOB_REWARDED`.
+
+Resolution order: Gradle `-P` / `gradle.properties` → `admob.properties` → env vars →
+Google test IDs (debug only).
+
+### How IDs are applied
+
+| ID | Injected as |
+|---|---|
+| App ID | AndroidManifest placeholder `${admobAppId}` (`com.google.android.gms.ads.APPLICATION_ID`) |
+| Banner / interstitial / rewarded | `BuildConfig.ADMOB_*_UNIT` read by `AdBridge` |
+
+Debug builds without real IDs use:
+
+- App: `ca-app-pub-3940256099942544~3347511713`
+- Banner: `ca-app-pub-3940256099942544/6300978111`
+- Interstitial: `ca-app-pub-3940256099942544/1033173712`
+- Rewarded: `ca-app-pub-3940256099942544/5224354917`
+
+Release builds that still resolve to those test IDs **fail** with a Gradle error.
+Internal-only exception: `-PadmobAllowTestIds=true`.
+
+## 2. Release AAB on Windows (Godot 4.7.2)
+
+Godot: `C:\dev\godot\Godot_v4.7.2-stable_win64_console.exe`  
+Preset: **Android AAB**  
+Output: `build/InfiniteCanvas3D-v3.3.0-release.aab`
+
+1. Put real IDs in `admob.properties` (project root).
+2. From the project root:
+
+```bat
+"C:\dev\godot\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --export-release "Android AAB" build/InfiniteCanvas3D-v3.3.0-release.aab
+```
+
+3. Sign with the existing release keystore (password lives in a **local untracked**
+   file such as `build/SIGNING-KEY.txt` — never commit it):
+
+```bat
+jarsigner -sigalg SHA256withRSA -digestalg SHA-256 ^
+  -keystore build/ultimatecanvas-release.keystore ^
+  build/InfiniteCanvas3D-v3.3.0-release.aab ultimatecanvas
+```
+
+Keystore: `build/ultimatecanvas-release.keystore` · alias `ultimatecanvas`.
+The keystore, password file, AABs and APKs are gitignored.
+
+If Godot is configured to sign during export (`export_credentials.cfg`, also
+gitignored), you can skip the `jarsigner` step. Do not commit signing secrets.
+
+## 3. Debug APK (test ads)
+
+```bash
+godot --headless --path . --export-debug "Android Gradle APK" build/InfiniteCanvas3D-gradle.apk
+```
+
+No `admob.properties` needed; Google's test IDs are used.
+
+## 4. Consent (UMP)
+
+On launch `AdBridge` calls `requestConsentInfoUpdate`, then
+`loadAndShowConsentFormIfRequired`. **Mobile Ads is initialized and ads are loaded
+only when `canRequestAds()` is true.**
+
+If `privacyOptionsRequirementStatus` is `REQUIRED`, Settings shows **Privacy options**,
+which calls `UserMessagingPlatform.showPrivacyOptionsForm`.
+
+SDK: `com.google.android.ump:user-messaging-platform:3.2.0` with
+`com.google.android.gms:play-services-ads:23.6.0`.
+
+Configure GDPR/IDFA messages in AdMob → Privacy & messaging. Point AdMob at
+https://fareza777.github.io/infinitecanvas3d/privacy-policy.html
+
+## 5. Ad formats
 
 | Format | Placement | Behaviour |
 |---|---|---|
-| Anchored adaptive banner | Bottom of the board | Native view over the Godot surface; the UI reserves its height so the dock moves above it; hidden while sheets/onboarding/splash are open |
-| Interstitial | After applying a template, plus the manual "Watch a short ad" action in Settings | Preloaded; 90-second in-app cooldown; never shown when ad-free |
-| Rewarded | Settings → "Watch a rewarded ad" | Grants a real 24-hour ad-free window; banner/interstitial are then disabled until it expires |
+| Anchored adaptive banner | Bottom of the board | Native view over the Godot surface; hidden while sheets/onboarding/splash are open; off after Remove Ads or a 24-hour reward |
+| Interstitial | After applying a template, plus Settings → "Watch a short ad" | Preloaded; 90-second cooldown; never shown when ad-free |
+| Rewarded | Settings → "Watch a rewarded ad" | **Optional** (user-initiated only). Grants a 24-hour ad-free window for banner/interstitial. Still offered during that window. Hidden after Remove Ads |
 
-Remove Ads (`remove_ads`, $4.99) permanently disables all three formats. Banner requests
-are not made when ads are off. The ad-free reward is stored in `user://app_config.json`;
-the permanent entitlement is stored in `user://entitlement.json`.
+`remove_ads` (Play Billing, $4.99) permanently disables banner, interstitial **and**
+rewarded. Banner/interstitial requests are not made when ads are off.
 
-## 3. Remove Ads product
+## 6. Remove Ads product
 
 Create a **one-time in-app product** in Play Console:
 
@@ -50,29 +128,14 @@ Create a **one-time in-app product** in Play Console:
 |---|---|
 | Product ID | `remove_ads` |
 | Type | One-time product (not a subscription) |
-| Price | **$4.99** USD (set in Play Console; the app displays Google's formatted price) |
+| Price | **$4.99** USD |
 | Status | Active |
 
-The app queries `remove_ads`, acknowledges purchases and restores the entitlement. It
-does **not** ship Pro subscriptions or fake a successful purchase. A sideloaded APK
-correctly reports Billing unavailable.
+The app queries `remove_ads`, acknowledges purchases and restores the entitlement. A
+sideloaded APK correctly reports Billing unavailable.
 
-## 4. Consent and policy
+## 7. Policy notes
 
-- Test with the test IDs before switching to production.
-- Set an AdMob privacy policy URL in AdMob and declare ads/in-app purchases in Play
-  Console's Data safety and ads declarations.
-- If you serve ads in the EEA/UK/Switzerland, add an IAB TCF/GDPR consent flow (Google
-  UMP SDK) before requesting ads. This build requests the SDK defaults; it does not
-  include a consent management form.
-- Never click your own live ads. Use test devices/test IDs while developing.
-
-## 5. Rebuild after changing IDs
-
-```bash
-godot --headless --path . --export-debug "Android Gradle APK" build/adtest.apk
-```
-
-For release, rebuild the signed APK/AAB as described in the README. The Gradle build
-pulls `com.google.android.gms:play-services-ads:23.6.0` and the AdMob application ID
-metadata is merged into the final manifest.
+- Test with test IDs / test devices. Never click your own live ads.
+- Declare ads and in-app purchases in Play Console Data safety.
+- Hosted privacy policy: https://fareza777.github.io/infinitecanvas3d/privacy-policy.html

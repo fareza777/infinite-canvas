@@ -24,20 +24,29 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.FormError;
+import com.google.android.ump.UserMessagingPlatform;
 
 public class AdBridge {
-    // Google's official test IDs. Replace all four with your AdMob production IDs before publishing.
-    public static final String BANNER_UNIT = "ca-app-pub-3940256099942544/6300978111";
-    public static final String INTERSTITIAL_UNIT = "ca-app-pub-3940256099942544/1033173712";
-    public static final String REWARDED_UNIT = "ca-app-pub-3940256099942544/5224354917";
+    private static final String TAG = "AdMob";
+
+    public static final String BANNER_UNIT = BuildConfig.ADMOB_BANNER_UNIT;
+    public static final String INTERSTITIAL_UNIT = BuildConfig.ADMOB_INTERSTITIAL_UNIT;
+    public static final String REWARDED_UNIT = BuildConfig.ADMOB_REWARDED_UNIT;
 
     private static Activity activity;
     private static AdView bannerView;
     private static InterstitialAd interstitial;
     private static RewardedAd rewarded;
-    private static boolean initialized = false;
+    private static ConsentInformation consentInformation;
+    private static boolean consentRequested = false;
+    private static volatile boolean consentComplete = false;
+    private static boolean mobileAdsStarted = false;
     private static volatile boolean initComplete = false;
     private static volatile boolean adsEnabled = false;
+    private static volatile boolean rewardedEnabled = false;
     private static volatile boolean overlayHidden = false;
     private static volatile boolean bannerLoaded = false;
     private static volatile boolean bannerVisible = false;
@@ -49,42 +58,144 @@ public class AdBridge {
 
     public static void attach(Activity value) {
         activity = value;
-        if (activity != null) {
-            initialized = false;
-        }
     }
 
     public static void detach(Activity value) {
         if (activity == value) {
             hideBanner();
             activity = null;
-            initialized = false;
+            consentRequested = false;
         }
     }
 
     public static void init() {
-        if (activity == null || initialized) {
+        if (activity == null || consentRequested) {
             return;
         }
-        initialized = true;
+        consentRequested = true;
         final Activity host = activity;
-        mainHandler.post(() -> {
-            try {
-                MobileAds.initialize(host, status -> {
-                    initComplete = true;
-                    if (adsEnabled) {
-                        if (bannerView == null) {
-                            createBanner();
-                        }
-                        loadInterstitial();
-                        loadRewarded();
-                    }
-                });
-            } catch (Throwable t) {
-                lastError = t.getClass().getSimpleName() + ": " + t.getMessage();
-                Log.e("AdMob", "Initialization failed: " + lastError);
+        mainHandler.post(() -> requestConsentThenInitAds(host));
+    }
+
+    private static void requestConsentThenInitAds(Activity host) {
+        try {
+            ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
+            consentInformation = UserMessagingPlatform.getConsentInformation(host);
+            consentInformation.requestConsentInfoUpdate(
+                    host,
+                    params,
+                    () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+                            host,
+                            (FormError formError) -> {
+                                if (formError != null) {
+                                    lastError = "Consent form: " + formError.getMessage();
+                                    Log.w(TAG, lastError);
+                                }
+                                onConsentFlowFinished();
+                            }),
+                    (FormError requestError) -> {
+                        lastError = "Consent update: " + requestError.getMessage();
+                        Log.w(TAG, lastError);
+                        onConsentFlowFinished();
+                    });
+        } catch (Throwable t) {
+            lastError = t.getClass().getSimpleName() + ": " + t.getMessage();
+            Log.e(TAG, "UMP failed: " + lastError);
+            onConsentFlowFinished();
+        }
+    }
+
+    private static void onConsentFlowFinished() {
+        consentComplete = true;
+        if (canRequestAdsInternal()) {
+            initializeMobileAds();
+        } else {
+            Log.i(TAG, "Ads not requested: canRequestAds() is false");
+        }
+    }
+
+    private static void initializeMobileAds() {
+        if (mobileAdsStarted) {
+            if (initComplete && (adsEnabled || rewardedEnabled)) {
+                ensureAdsLoaded();
             }
-        });
+            return;
+        }
+        Activity host = activity;
+        if (host == null) {
+            return;
+        }
+        mobileAdsStarted = true;
+        try {
+            MobileAds.initialize(host, status -> {
+                initComplete = true;
+                if (adsEnabled || rewardedEnabled) {
+                    ensureAdsLoaded();
+                }
+            });
+        } catch (Throwable t) {
+            lastError = t.getClass().getSimpleName() + ": " + t.getMessage();
+            Log.e(TAG, "Initialization failed: " + lastError);
+            mobileAdsStarted = false;
+        }
+    }
+
+    private static void ensureAdsLoaded() {
+        if (!initComplete || !canRequestAdsInternal()) {
+            return;
+        }
+        if (adsEnabled) {
+            if (bannerView == null) {
+                createBanner();
+            }
+            loadInterstitial();
+        }
+        if (rewardedEnabled) {
+            loadRewarded();
+        }
+    }
+
+    private static boolean canRequestAdsInternal() {
+        return consentInformation != null && consentInformation.canRequestAds();
+    }
+
+    private static boolean adsAllowed() {
+        return initComplete && adsEnabled && canRequestAdsInternal();
+    }
+
+    public static boolean canRequestAds() {
+        return canRequestAdsInternal();
+    }
+
+    public static boolean isConsentComplete() {
+        return consentComplete;
+    }
+
+    public static boolean isPrivacyOptionsRequired() {
+        return consentInformation != null
+                && consentInformation.getPrivacyOptionsRequirementStatus()
+                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+    }
+
+    public static void showPrivacyOptions() {
+        Activity host = activity;
+        if (host == null) {
+            return;
+        }
+        mainHandler.post(() -> UserMessagingPlatform.showPrivacyOptionsForm(host, formError -> {
+            if (formError != null) {
+                lastError = "Privacy options: " + formError.getMessage();
+                Log.w(TAG, lastError);
+            }
+            if (canRequestAdsInternal()) {
+                initializeMobileAds();
+                if (adsEnabled || rewardedEnabled) {
+                    ensureAdsLoaded();
+                }
+            } else {
+                hideBanner();
+            }
+        }));
     }
 
     public static int getBannerHeightDp() {
@@ -92,7 +203,7 @@ public class AdBridge {
     }
 
     public static boolean isBannerVisible() {
-        return bannerVisible && bannerLoaded && adsEnabled && !overlayHidden;
+        return bannerVisible && bannerLoaded && adsAllowed() && !overlayHidden;
     }
 
     public static boolean setAdsEnabled(boolean enabled) {
@@ -104,6 +215,13 @@ public class AdBridge {
                 return;
             }
             if (!initComplete) {
+                if (canRequestAdsInternal()) {
+                    initializeMobileAds();
+                }
+                return;
+            }
+            if (!canRequestAdsInternal()) {
+                hideBanner();
                 return;
             }
             if (bannerView == null) {
@@ -118,19 +236,39 @@ public class AdBridge {
         return true;
     }
 
+    public static boolean setRewardedEnabled(boolean enabled) {
+        rewardedEnabled = enabled;
+        init();
+        mainHandler.post(() -> {
+            if (!enabled) {
+                return;
+            }
+            if (!initComplete) {
+                if (canRequestAdsInternal()) {
+                    initializeMobileAds();
+                }
+                return;
+            }
+            if (canRequestAdsInternal()) {
+                loadRewarded();
+            }
+        });
+        return true;
+    }
+
     public static void setOverlayHidden(boolean hidden) {
         overlayHidden = hidden;
         mainHandler.post(() -> {
             if (bannerView != null) {
                 bannerView.setVisibility(hidden ? View.GONE : View.VISIBLE);
-                bannerVisible = !hidden && adsEnabled;
+                bannerVisible = !hidden && adsAllowed();
             }
         });
     }
 
     private static void createBanner() {
         Activity host = activity;
-        if (host == null) {
+        if (host == null || !adsAllowed()) {
             return;
         }
         try {
@@ -147,7 +285,7 @@ public class AdBridge {
                 @Override
                 public void onAdLoaded() {
                     bannerLoaded = true;
-                    bannerVisible = adsEnabled && !overlayHidden;
+                    bannerVisible = adsAllowed() && !overlayHidden;
                     view.setVisibility(bannerVisible ? View.VISIBLE : View.GONE);
                 }
 
@@ -161,7 +299,7 @@ public class AdBridge {
 
                 @Override
                 public void onAdImpression() {
-                    bannerVisible = adsEnabled && !overlayHidden;
+                    bannerVisible = adsAllowed() && !overlayHidden;
                 }
             });
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
@@ -189,7 +327,7 @@ public class AdBridge {
             view.loadAd(new AdRequest.Builder().build());
         } catch (Throwable t) {
             lastError = t.getClass().getSimpleName() + ": " + t.getMessage();
-            Log.e("AdMob", "Banner failed: " + lastError);
+            Log.e(TAG, "Banner failed: " + lastError);
         }
     }
 
@@ -207,7 +345,7 @@ public class AdBridge {
     }
 
     private static void loadInterstitialInternal() {
-        if (!initComplete || !adsEnabled || interstitial != null || interstitialLoading || activity == null) {
+        if (!adsAllowed() || interstitial != null || interstitialLoading || activity == null) {
             return;
         }
         interstitialLoading = true;
@@ -246,7 +384,7 @@ public class AdBridge {
     }
 
     public static boolean showInterstitial() {
-        if (!adsEnabled || activity == null || interstitial == null) {
+        if (!adsAllowed() || activity == null || interstitial == null) {
             loadInterstitial();
             return false;
         }
@@ -261,7 +399,7 @@ public class AdBridge {
     }
 
     private static void loadRewardedInternal() {
-        if (!initComplete || !adsEnabled || rewarded != null || rewardedLoading || activity == null) {
+        if (!initComplete || !canRequestAdsInternal() || !rewardedEnabled || rewarded != null || rewardedLoading || activity == null) {
             return;
         }
         rewardedLoading = true;
@@ -300,7 +438,7 @@ public class AdBridge {
     }
 
     public static boolean showRewarded() {
-        if (!adsEnabled || activity == null || rewarded == null) {
+        if (!initComplete || !canRequestAdsInternal() || !rewardedEnabled || activity == null || rewarded == null) {
             loadRewarded();
             return false;
         }

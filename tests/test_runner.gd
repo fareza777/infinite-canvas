@@ -7,7 +7,7 @@ var project: CanvasProject
 
 
 func _init() -> void:
-	print("=== Ultimate Infinite Canvas 3D — test suite ===")
+	print("=== Infinite Canvas 3D: Whiteboard — test suite ===")
 	_test_project_model()
 	_test_undo()
 	_test_smart_engine()

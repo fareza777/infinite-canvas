@@ -1,0 +1,10 @@
+# Copy to admob.properties in this folder (or android/build/admob.properties).
+# admob.properties is gitignored — never commit real IDs.
+#
+# Google's test IDs are the debug default. A release AAB/APK fails unless
+# these four keys are real AdMob IDs (or you pass -PadmobAllowTestIds=true).
+
+admobAppId=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+admobBanner=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz
+admobInterstitial=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz
+admobRewarded=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz

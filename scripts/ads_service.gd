@@ -2,6 +2,7 @@ class_name AdsService
 extends Node
 
 signal state_changed
+signal privacy_options_changed
 signal reward_earned
 signal notice(text: String, icon: String, color: Color)
 
@@ -10,14 +11,19 @@ const BANNER_HEIGHT := 112.0
 var bridge = null
 var available := false
 var enabled := false
+var rewarded_enabled := false
 var overlay_hidden := true
 var banner_visible := false
 var rewarded_pending := false
+var privacy_options_required := false
+var can_request_ads := false
+var consent_complete := false
 var last_error := ""
 var _poll: Timer
 var _reward_timer: Timer
 var _reward_ticks := 0
 var _last_banner := false
+var _last_privacy_required := false
 
 
 func _ready() -> void:
@@ -52,6 +58,7 @@ func _initialize_bridge() -> void:
 		notice.emit("AdMob could not initialize", "warning", Kit.DANGER)
 		return
 	bridge.setOverlayHidden(true)
+	_sync_consent_state()
 	state_changed.emit()
 
 
@@ -68,6 +75,14 @@ func set_enabled(on: bool) -> void:
 	_emit_if_changed()
 
 
+func set_rewarded_enabled(on: bool) -> void:
+	rewarded_enabled = on and available
+	if bridge == null:
+		return
+	if bridge.has_java_method("setRewardedEnabled"):
+		bridge.setRewardedEnabled(rewarded_enabled)
+
+
 func set_overlay_hidden(hidden: bool) -> void:
 	overlay_hidden = hidden
 	if bridge != null:
@@ -78,28 +93,43 @@ func set_overlay_hidden(hidden: bool) -> void:
 func _tick() -> void:
 	if bridge == null:
 		return
-	banner_visible = enabled and not overlay_hidden and bridge.isBannerVisible()
+	_sync_consent_state()
+	banner_visible = enabled and not overlay_hidden and can_request_ads and bridge.isBannerVisible()
 	if banner_visible != _last_banner:
 		_last_banner = banner_visible
 		state_changed.emit()
 
 
+func _sync_consent_state() -> void:
+	if bridge == null:
+		return
+	if bridge.has_java_method("canRequestAds"):
+		can_request_ads = bool(bridge.canRequestAds())
+	if bridge.has_java_method("isConsentComplete"):
+		consent_complete = bool(bridge.isConsentComplete())
+	if bridge.has_java_method("isPrivacyOptionsRequired"):
+		privacy_options_required = bool(bridge.isPrivacyOptionsRequired())
+	if privacy_options_required != _last_privacy_required:
+		_last_privacy_required = privacy_options_required
+		privacy_options_changed.emit()
+
+
 func _emit_if_changed() -> void:
 	var before := _last_banner
-	banner_visible = enabled and not overlay_hidden and bridge != null and bridge.isBannerVisible()
+	banner_visible = enabled and not overlay_hidden and can_request_ads and bridge != null and bridge.isBannerVisible()
 	if banner_visible != before:
 		_last_banner = banner_visible
 	state_changed.emit()
 
 
 func is_interstitial_ready() -> bool:
-	if bridge == null or not enabled:
+	if bridge == null or not enabled or not can_request_ads:
 		return false
 	return bridge.isInterstitialReady()
 
 
 func show_interstitial() -> bool:
-	if bridge == null or not enabled:
+	if bridge == null or not enabled or not can_request_ads:
 		return false
 	var shown := bool(bridge.showInterstitial())
 	if not shown:
@@ -108,14 +138,17 @@ func show_interstitial() -> bool:
 
 
 func is_rewarded_ready() -> bool:
-	if bridge == null or not enabled:
+	if bridge == null or not rewarded_enabled or not can_request_ads:
 		return false
 	return bridge.isRewardedReady()
 
 
 func show_rewarded() -> bool:
-	if bridge == null or not enabled:
+	if bridge == null or not rewarded_enabled:
 		notice.emit("Ads are not available right now.", "warning", Kit.MUTED)
+		return false
+	if not can_request_ads:
+		notice.emit("Ads need a privacy choice before they can load.", "shield", Kit.MUTED)
 		return false
 	if not bridge.isRewardedReady():
 		bridge.loadRewarded()
@@ -126,6 +159,17 @@ func show_rewarded() -> bool:
 		_reward_ticks = 0
 		_reward_timer.start()
 	return rewarded_pending
+
+
+func show_privacy_options() -> void:
+	if bridge == null or not bridge.has_java_method("showPrivacyOptions"):
+		notice.emit("Privacy options are not available in this build.", "info", Kit.MUTED)
+		return
+	bridge.showPrivacyOptions()
+
+
+func is_privacy_options_required() -> bool:
+	return privacy_options_required
 
 
 func _poll_reward() -> void:
@@ -153,6 +197,10 @@ func status_text() -> String:
 		return "Ads appear in the Android build only."
 	if not available:
 		return last_error if not last_error.is_empty() else "AdMob is unavailable."
+	if not consent_complete:
+		return "Checking privacy consent…"
+	if not can_request_ads:
+		return "Ads are paused until a privacy choice is made."
 	if not enabled:
-		return "Ads are off while you are ad-free."
+		return "Banner and interstitial ads are off while you are ad-free."
 	return "Ads are active · remove them permanently from Settings"

@@ -25,6 +25,8 @@ const NOTE_PAPERS := [
 const FREE_LIMIT := 3
 const APP_CONFIG := "user://app_config.json"
 const FOV_3D := 48.0
+const PRIVACY_POLICY_URL := "https://fareza777.github.io/infinitecanvas3d/privacy-policy.html"
+const APP_DISPLAY_NAME := "Infinite Canvas 3D: Whiteboard"
 
 var project: CanvasProject
 var undo: UndoManager
@@ -340,6 +342,7 @@ func _build_ads() -> void:
 	add_child(ads)
 	ads.notice.connect(func(text, icon, color): ui.toast(text, icon, color, 2.6))
 	ads.state_changed.connect(_on_ads_state)
+	ads.privacy_options_changed.connect(_on_privacy_options_changed)
 	ads.reward_earned.connect(_on_reward_earned)
 	ad_free_until = float(app_cfg.get("ad_free_until", 0.0))
 	_refresh_ads()
@@ -357,9 +360,32 @@ func _refresh_ads() -> void:
 		return
 	var free := is_ad_free()
 	ads.set_enabled(not free)
+	ads.set_rewarded_enabled(not has_removed_ads())
 	ads.set_overlay_hidden(_ad_overlay_hidden or free)
 	if ui != null:
 		ui.relayout()
+
+
+func _on_privacy_options_changed() -> void:
+	if ui != null and ui.sheet_kind == "settings":
+		ui.reload_sheet()
+
+
+func needs_privacy_options() -> bool:
+	return ads != null and ads.is_privacy_options_required()
+
+
+func show_privacy_options() -> void:
+	if ads != null:
+		ads.show_privacy_options()
+
+
+func open_privacy_policy() -> void:
+	var err := OS.shell_open(PRIVACY_POLICY_URL)
+	if err != OK:
+		ui.toast("Could not open the privacy policy", "warning", Kit.DANGER, 1.8)
+		return
+	ui.toast("Opening privacy policy", "shield", Kit.ACCENT, 1.4)
 
 
 func set_ad_overlay_hidden(hidden: bool) -> void:
@@ -3527,11 +3553,11 @@ func format_bytes(bytes: int) -> String:
 
 func share_app() -> void:
 	var link := "https://play.google.com/store/apps/details?id=com.fajar.ultimatecanvas3d"
-	var message := "Ultimate Infinite Canvas 3D Pro — a premium 2D + 3D infinite whiteboard for notes, mind maps, PDFs and storyboards.\n" + link
+	var message := "%s — a 2D + 3D infinite whiteboard for notes, mind maps, PDFs and storyboards.\n%s" % [APP_DISPLAY_NAME, link]
 	if OS.has_feature("android"):
 		var bridge = JavaClassWrapper.wrap("com.godot.game.ShareBridge")
 		if bridge != null and bridge.has_java_method("share"):
-			var result = bridge.share("Ultimate Infinite Canvas 3D Pro", message)
+			var result = bridge.share(APP_DISPLAY_NAME, message)
 			if JavaClassWrapper.get_exception() == null and str(result).begins_with("OK"):
 				return
 	DisplayServer.clipboard_set(message)
@@ -3555,7 +3581,7 @@ func get_device_info() -> Dictionary:
 		model = str(OS.get_model_name())
 	var screen := DisplayServer.window_get_size()
 	return {
-		"version": str(ProjectSettings.get_setting("application/config/version", "3.2.0")),
+		"version": str(ProjectSettings.get_setting("application/config/version", "3.3.0")),
 		"engine": str(Engine.get_version_info().get("string", "Godot")),
 		"os": "%s %s" % [OS.get_name(), OS.get_version()],
 		"model": model,

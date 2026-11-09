@@ -1,8 +1,10 @@
-# Google Play Store Listing — v3.2.0
+# Google Play Store Listing — v3.3.0
 
 ## App name
 
-Ultimate Infinite Canvas 3D Pro
+Infinite Canvas 3D: Whiteboard
+
+(30 characters — Play Console maximum. Launcher label on the home screen: **Infinite Canvas 3D**.)
 
 ## Short description (80 characters)
 
@@ -15,7 +17,7 @@ Infinite 2D + 3D canvas for notes, mind maps, PDFs, storyboards and 3D models.
 
 **Think in space — now in light or dark.**
 
-Ultimate Infinite Canvas 3D Pro is a premium hybrid infinite whiteboard where 2D ideas and
+Infinite Canvas 3D: Whiteboard is a hybrid infinite whiteboard where 2D ideas and
 real 3D objects live on the same surface. Sketch with a finger or stylus, drop spatial notes,
 connect concepts, build a storyboard, import a PDF or place a 3D model — then tilt the camera
 and see everything from a new angle.
@@ -63,10 +65,11 @@ instantly, with large readable type and roomy touch targets.
 **PRIVACY-FIRST. ADS OFF WHEN YOU WANT.**
 - Your boards stay on your device. No account and no analytics.
 - The app is supported by ads: a banner, occasional interstitial and an optional rewarded ad
-  that removes ads for 24 hours.
+  that removes ads for 24 hours. Consent is requested before ads load where required.
 - **Remove Ads — $4.99 one-time** removes banner, interstitial and rewarded ads permanently.
 - Everything that used to be Pro — unlimited boards, all templates, all atmospheres and all
   accents — is now included.
+- Privacy policy: https://fareza777.github.io/infinitecanvas3d/privacy-policy.html
 
 **MADE FOR FOCUS**
 - Complete Studio Settings: theme, type scale, grid styles, left-handed layout, autosave,
@@ -78,7 +81,7 @@ Your ideas stay on your device.
 
 **Berpikir dalam ruang — sekarang terang atau gelap.**
 
-Ultimate Infinite Canvas 3D Pro adalah whiteboard tak terbatas hibrida premium tempat ide 2D
+Infinite Canvas 3D: Whiteboard adalah whiteboard tak terbatas hibrida tempat ide 2D
 dan objek 3D nyata hidup di satu permukaan. Menggambar dengan jari atau stylus, membuat catatan
 spasial, menghubungkan konsep, menyusun storyboard, memasukkan PDF, atau menempatkan model 3D —
 lalu putar kamera dan lihat semuanya dari sudut baru.
@@ -125,10 +128,11 @@ dengan teks besar yang nyaman dan target sentuh lega.
 **PRIVASI UTAMA. IKLAN BISA DIHILANGKAN.**
 - Papan Anda tetap di perangkat. Tanpa akun dan tanpa analitik.
 - Didukung iklan: banner, interstitial sesekali, dan rewarded ad opsional untuk bebas iklan
-  24 jam.
+  24 jam. Persetujuan diminta sebelum iklan dimuat jika diwajibkan.
 - **Remove Ads — $4.99 sekali bayar** menghilangkan banner, interstitial dan rewarded ad
   secara permanen.
 - Semua yang dulu Pro — papan tak terbatas, semua template, atmosfer dan aksen — kini gratis.
+- Kebijakan privasi: https://fareza777.github.io/infinitecanvas3d/privacy-policy.html
 
 **DIRANCANG UNTUK FOKUS**
 - Studio Settings lengkap: tema, ukuran teks, gaya grid, tata letak kidal, autosave, restore
@@ -151,12 +155,16 @@ Everyone / 3+ (no violence, no public user-generated content)
 
 ## Ads
 
-**Yes** — Google AdMob banner, interstitial and rewarded ads. Remove Ads is available as a
-one-time $4.99 in-app purchase.
+**Yes** — Google AdMob banner, interstitial and rewarded ads. Consent via Google UMP before
+ad requests. Remove Ads is available as a one-time $4.99 in-app purchase.
 
 ## In-app purchases
 
 **Yes** — `remove_ads`, one-time, $4.99. No subscription. No Pro mode.
+
+## Privacy policy
+
+https://fareza777.github.io/infinitecanvas3d/privacy-policy.html
 
 ## Screenshot plan
 
