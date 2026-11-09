@@ -6,6 +6,18 @@ plugins {
 
 apply from: 'config.gradle'
 
+// Godot export wipes src/main/assets and the install-time asset pack assets
+// (including keep.txt) before copying the packed game. Restore the placeholders
+// at configuration time so a finished export does not look like a dirty tree.
+def restoreExportKeepTxt(File keep) {
+    if (!keep.exists()) {
+        keep.parentFile.mkdirs()
+        keep.setText("This file keeps the assets directory in git.\n")
+    }
+}
+restoreExportKeepTxt(file("src/main/assets/keep.txt"))
+restoreExportKeepTxt(file("assetPackInstallTime/src/main/assets/keep.txt"))
+
 // AdMob IDs: Gradle -P flags, gitignored admob.properties, or env vars.
 // Debug defaults to Google's official test IDs. Release fails if those are still in use
 // unless -PadmobAllowTestIds=true. See docs/ADS_SETUP.md.
@@ -42,12 +54,15 @@ def firstNonEmpty(Object... candidates) {
     return null
 }
 
-def admobFileProps = loadAdmobFileProperties()
+// Extra property (not a script-local `def`) so resolveAdmobValue() and other
+// script methods can read it. A `def` here is local to the compiled run()
+// method and Gradle reports "Could not get unknown property 'admobFileProps'".
+ext.admobFileProps = loadAdmobFileProperties()
 
 def resolveAdmobValue(String key, String envKey) {
     return firstNonEmpty(
         project.findProperty(key),
-        admobFileProps.getProperty(key),
+        project.admobFileProps.getProperty(key),
         System.getenv(envKey)
     )
 }
@@ -58,7 +73,7 @@ def providedAdmobInterstitial = resolveAdmobValue("admobInterstitial", "ADMOB_IN
 def providedAdmobRewarded = resolveAdmobValue("admobRewarded", "ADMOB_REWARDED")
 def admobAllowTestIds = firstNonEmpty(
         project.findProperty("admobAllowTestIds"),
-        admobFileProps.getProperty("admobAllowTestIds"),
+        project.admobFileProps.getProperty("admobAllowTestIds"),
         System.getenv("ADMOB_ALLOW_TEST_IDS")
 )?.toString()?.toBoolean() ?: false
 

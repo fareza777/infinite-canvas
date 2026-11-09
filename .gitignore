@@ -20,6 +20,14 @@ android/build/**/build/
 android/build/local.properties
 android/build/*.iml
 
+# Godot Android export copies the packed game here on every export (and
+# wipes previous contents, including keep.txt). Ignore the dump; keep.txt
+# placeholders stay tracked via the exceptions below.
+android/build/src/main/assets/**
+!android/build/src/main/assets/keep.txt
+android/build/assetPackInstallTime/src/main/assets/**
+!android/build/assetPackInstallTime/src/main/assets/keep.txt
+
 # Godot Android template binaries (~210 MB; reinstall with the official
 # Android build template: Project > Install Android Build Template)
 android/build/libs/**/*.aar

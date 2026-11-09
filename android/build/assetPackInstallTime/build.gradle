@@ -2,6 +2,13 @@ plugins {
     id 'com.android.asset-pack'
 }
 
+// Godot export may wipe this folder. Recreate the git placeholder if missing.
+def keepTxt = file("src/main/assets/keep.txt")
+if (!keepTxt.exists()) {
+    keepTxt.parentFile.mkdirs()
+    keepTxt.setText("This file keeps the assets directory in git.\n")
+}
+
 assetPack {
     packName = "assetPackInstallTime" // Directory name for the asset pack
     dynamicDelivery {

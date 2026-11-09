@@ -1,1 +1,1 @@
-Ultimate Infinite Canvas 3D Pro
+This file keeps the assets directory in git.
