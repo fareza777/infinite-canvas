@@ -50,10 +50,12 @@ func build() -> Control:
 	if not app.has_removed_ads():
 		root.add_child(_row("block", "Remove Ads  ·  %s" % app.get_remove_ads_price(), "Permanently remove banner, interstitial and rewarded ads", func(): app.purchase_remove_ads(), "BUY", Kit.GOLD))
 		root.add_child(_row("restore", "Restore purchase", "Check this Google Play account for Remove Ads", func(): app.restore_purchases(), "", Kit.ACCENT))
+		root.add_child(_row("redeem", "Watch a rewarded ad", "Optional · remove banner and interstitial ads for 24 hours", func(): app.watch_rewarded_ad(), "24H", Kit.GREEN))
 		if not app.is_ad_free():
-			root.add_child(_row("redeem", "Watch a rewarded ad", "Remove ads for 24 hours", func(): app.watch_rewarded_ad(), "24H", Kit.GREEN))
 			root.add_child(_row("play_circle", "Watch a short ad", "Support the studio with an interstitial", func(): app.show_interstitial_ad(), "AD", Kit.ACCENT))
 		root.add_child(Kit.wrapped(app.get_billing_message(), 13, Kit.DIM, 450))
+	if app.needs_privacy_options():
+		root.add_child(_row("tune", "Privacy options", "Review or change your ad consent choices", func(): app.show_privacy_options(), "", Kit.VIOLET))
 
 	root.add_child(_section("Data"))
 	root.add_child(_storage_card())
@@ -71,8 +73,9 @@ func build() -> Control:
 	root.add_child(_row("info", "About", "Version, engine, privacy and credits", func(): ui.open_sheet("about"), "", Kit.ACCENT))
 	root.add_child(_row("share", "Share the app", "Send an invite to a friend", func(): app.share_app(), "", Kit.GREEN))
 	root.add_child(_row("star", "Rate on Google Play", "Tell others what you built", func(): app.rate_app(), "", Kit.GOLD))
-	root.add_child(_row("shield", "Privacy & licences", "Ads, Billing and open-source details", func(): ui.open_sheet("about"), "", Kit.VIOLET))
-	root.add_child(Kit.label("v3.2.0 · Godot 4.7.2", 12, Kit.DIM, 500, "mono"))
+	root.add_child(_row("article", "Privacy policy", "How ads, purchases and on-device data are handled", func(): app.open_privacy_policy(), "", Kit.VIOLET))
+	root.add_child(_row("shield", "Licences", "Ads, Billing and open-source details", func(): ui.open_sheet("about"), "", Kit.VIOLET))
+	root.add_child(Kit.label("v%s · Godot 4.7.2" % str(ProjectSettings.get_setting("application/config/version", "3.3.0")), 12, Kit.DIM, 500, "mono"))
 	return root
 
 
@@ -152,7 +155,7 @@ func _hero(s: Dictionary) -> Control:
 	tb.add_theme_constant_override("separation", 2)
 	h.add_child(tb)
 	tb.add_child(Kit.label("Studio settings", 20, Kit.TEXT, 700, "display"))
-	tb.add_child(Kit.wrapped("%s theme · %s stored · v3.2.0" % [str(app.get_ui_theme()).capitalize(), app.format_bytes(app.get_storage_used())], 13, Kit.MUTED, 500))
+	tb.add_child(Kit.wrapped("%s theme · %s stored · v%s" % [str(app.get_ui_theme()).capitalize(), app.format_bytes(app.get_storage_used()), str(ProjectSettings.get_setting("application/config/version", "3.3.0"))], 13, Kit.MUTED, 500))
 	var dot := Kit.chip(str(app.get_ui_theme()).to_upper(), Kit.ACCENT, 12)
 	h.add_child(dot)
 	return panel

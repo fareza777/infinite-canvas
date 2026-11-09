@@ -32,7 +32,7 @@ const SHEET_META := {
 	"nav": ["NAVIGATION", "Move through space", "Six directions, presets and camera bookmarks."],
 	"look": ["ATMOSPHERE", "View & lighting", "Tune the grid, lighting and snap behaviour."],
 	"help": ["GUIDE", "Help", "Gestures, shortcuts and a quick tour."],
-	"about": ["ULTIMATE INFINITE CANVAS 3D", "About", "Version 3.2.0 · Godot 4.7.2 · Ad-supported"],
+	"about": ["INFINITE CANVAS 3D", "About", "Whiteboard · v3.3.0 · Godot 4.7.2 · Ad-supported"],
 	"inspector": ["INSPECTOR", "Selected object", "Adjust content, appearance and transform."],
 	"layer_options": ["LAYER", "Layer options", "Rename, recolour or reorder this layer."],
 	"settings": ["PREFERENCES", "Settings", "Appearance, canvas, tools, editor, data and support."],

@@ -1,12 +1,21 @@
 # Test & QA Log
 
+## 3.3.0 Play-release notes
+
+- Version **3.3.0**, versionCode **6**. Package still `com.fajar.ultimatecanvas3d`.
+- UMP consent runs before Mobile Ads init. Settings shows Privacy options when required.
+- Release AAB requires real AdMob IDs (`docs/ADS_SETUP.md`). Debug keeps Google test IDs.
+- Hosted privacy policy: https://fareza777.github.io/infinitecanvas3d/privacy-policy.html
+- Historical device QA below is from v3.2.0; re-verify ads, consent, Remove Ads and the
+  privacy-policy link on a Play track build before production rollout.
+
 ## Automated tests
 
 ```bash
 godot --headless --path . --script res://tests/test_runner.gd
 ```
 
-**Final result: 92 passed, 0 failed** on the v3.2.0 tree.
+**Final result: 92 passed, 0 failed** on Godot 4.7.2.stable headless (`--script res://tests/test_runner.gd`).
 
 Coverage: project model/layers/CRUD/connectors/storyboard/serialisation, undo, Smart Engine,
 storage/backup/export, restore points, PDF guards, project validation.
@@ -82,8 +91,9 @@ Install via USB). Do **not** uninstall the existing app; install as an update to
 
 ## Known limits
 
-- Test AdMob IDs do not generate revenue; replace them with production IDs and add an EEA/UK
-  consent flow before publishing (see `docs/ADS_SETUP.md`).
+- Debug builds use test AdMob IDs (no revenue). Release builds fail unless real IDs are passed
+  via `admob.properties` or Gradle `-P` flags. UMP consent runs before any ad request
+  (see `docs/ADS_SETUP.md`).
 - Sideloaded APKs correctly report Play Billing unavailable; Remove Ads cannot be purchased.
 - PDF rasterisation uses Android `PdfRenderer` and is unavailable on desktop.
 - glTF external `.bin`/texture dependencies need to be embedded in a GLB for reliable import.

@@ -994,7 +994,7 @@ func _more() -> Control:
 	]
 	for a in actions:
 		grid.add_child(_card(a[2], a[1], "", a[3], "", Kit.ACCENT, 96))
-	root.add_child(Kit.wrapped("v3.2.0 · offline-first · ads can be removed in Settings", 13, Kit.DIM, 450))
+	root.add_child(Kit.wrapped("v%s · offline-first · ads can be removed in Settings" % str(ProjectSettings.get_setting("application/config/version", "3.3.0")), 13, Kit.DIM, 450))
 	return root
 
 
@@ -1162,14 +1162,15 @@ func _about() -> Control:
 	tb.add_theme_constant_override("separation", 2)
 	tb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(tb)
-	tb.add_child(Kit.display_label("Ultimate Canvas", 16, Kit.TEXT, 700))
-	tb.add_child(Kit.label("STUDIO · v%s" % str(info.get("version", "3.2.0")), 12, Kit.ACCENT, 700, "mono"))
+	tb.add_child(Kit.display_label("Infinite Canvas 3D", 16, Kit.TEXT, 700))
+	tb.add_child(Kit.label("WHITEBOARD · v%s" % str(info.get("version", "3.3.0")), 12, Kit.ACCENT, 700, "mono"))
 	tb.add_child(Kit.label("Godot %s" % str(info.get("engine", "4.7.2")), 12, Kit.MUTED, 500, "mono"))
 	root.add_child(_section("Share and support"))
 	root.add_child(_button_row([
 		_make_btn("Share app", "share", func(): app.share_app()),
 		_make_btn("Rate on Play", "star", func(): app.rate_app()),
 	]))
+	root.add_child(_row("article", "Privacy policy", "Open the hosted privacy policy", func(): app.open_privacy_policy(), "", Kit.VIOLET))
 	for f in [
 		["database", "Offline-first", "Projects, media and history live on this device. No account and no analytics."],
 		["shield", "Privacy", "Network is used only by AdMob ads and Google Play Billing for Remove Ads."],
@@ -1192,7 +1193,7 @@ func _about() -> Control:
 	root.add_child(license)
 	var copy := Kit.button("Copy credits", "content_copy", false, 46, 19)
 	copy.pressed.connect(func():
-		DisplayServer.clipboard_set("Ultimate Infinite Canvas 3D Pro · Powered by Godot 4 · Inspired by Lorien (MIT) by Marcus Brummer")
+		DisplayServer.clipboard_set("Infinite Canvas 3D: Whiteboard · Powered by Godot 4 · Inspired by Lorien (MIT) by Marcus Brummer")
 		ui.toast("Credits copied", "check_circle", Kit.GREEN)
 	)
 	root.add_child(copy)

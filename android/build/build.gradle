@@ -6,6 +6,109 @@ plugins {
 
 apply from: 'config.gradle'
 
+// AdMob IDs: Gradle -P flags, gitignored admob.properties, or env vars.
+// Debug defaults to Google's official test IDs. Release fails if those are still in use
+// unless -PadmobAllowTestIds=true. See docs/ADS_SETUP.md.
+def TEST_ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
+def TEST_ADMOB_BANNER = "ca-app-pub-3940256099942544/6300978111"
+def TEST_ADMOB_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712"
+def TEST_ADMOB_REWARDED = "ca-app-pub-3940256099942544/5224354917"
+def TEST_ADMOB_PUBLISHER = "3940256099942544"
+
+def loadAdmobFileProperties() {
+    def props = new Properties()
+    [
+        file("admob.properties"),
+        file("${project.projectDir}/admob.properties"),
+        file("${project.projectDir}/../../admob.properties"),
+    ].each { candidate ->
+        if (candidate.exists()) {
+            candidate.withInputStream { stream -> props.load(stream) }
+            logger.lifecycle("AdMob: loaded IDs from ${candidate.canonicalPath}")
+        }
+    }
+    return props
+}
+
+def firstNonEmpty(Object... candidates) {
+    for (Object candidate : candidates) {
+        if (candidate != null) {
+            String value = candidate.toString().trim()
+            if (!value.isEmpty()) {
+                return value
+            }
+        }
+    }
+    return null
+}
+
+def admobFileProps = loadAdmobFileProperties()
+
+def resolveAdmobValue(String key, String envKey) {
+    return firstNonEmpty(
+        project.findProperty(key),
+        admobFileProps.getProperty(key),
+        System.getenv(envKey)
+    )
+}
+
+def providedAdmobAppId = resolveAdmobValue("admobAppId", "ADMOB_APP_ID")
+def providedAdmobBanner = resolveAdmobValue("admobBanner", "ADMOB_BANNER")
+def providedAdmobInterstitial = resolveAdmobValue("admobInterstitial", "ADMOB_INTERSTITIAL")
+def providedAdmobRewarded = resolveAdmobValue("admobRewarded", "ADMOB_REWARDED")
+def admobAllowTestIds = firstNonEmpty(
+        project.findProperty("admobAllowTestIds"),
+        admobFileProps.getProperty("admobAllowTestIds"),
+        System.getenv("ADMOB_ALLOW_TEST_IDS")
+)?.toString()?.toBoolean() ?: false
+
+def resolvedAdmobAppId = providedAdmobAppId ?: TEST_ADMOB_APP_ID
+def resolvedAdmobBanner = providedAdmobBanner ?: TEST_ADMOB_BANNER
+def resolvedAdmobInterstitial = providedAdmobInterstitial ?: TEST_ADMOB_INTERSTITIAL
+def resolvedAdmobRewarded = providedAdmobRewarded ?: TEST_ADMOB_REWARDED
+
+def usesTestAdmobIds = { String appId, String banner, String interstitial, String rewarded ->
+    return [appId, banner, interstitial, rewarded].any { it.contains(TEST_ADMOB_PUBLISHER) }
+}
+
+def releaseUsesTestAdmobIds = usesTestAdmobIds(
+        resolvedAdmobAppId, resolvedAdmobBanner, resolvedAdmobInterstitial, resolvedAdmobRewarded)
+
+def quoteBuildConfig(String value) {
+    return "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+}
+
+gradle.taskGraph.whenReady { graph ->
+    boolean releaseTask = graph.allTasks.any { task ->
+        String name = task.name.toLowerCase()
+        name.contains("release") && (name.contains("assemble") || name.contains("bundle") || name.contains("package"))
+    }
+    if (releaseTask && releaseUsesTestAdmobIds && !admobAllowTestIds) {
+        throw new GradleException("""
+
+================================================================
+Release build is using Google AdMob TEST IDs.
+A Play Store AAB must use your real AdMob app ID and ad unit IDs.
+
+Pass them with Gradle properties:
+  -PadmobAppId=ca-app-pub-xxxx~yyyy
+  -PadmobBanner=ca-app-pub-xxxx/yyyy
+  -PadmobInterstitial=ca-app-pub-xxxx/yyyy
+  -PadmobRewarded=ca-app-pub-xxxx/yyyy
+
+or put the same keys in a gitignored admob.properties next to
+this build.gradle or at the Godot project root.
+
+See docs/ADS_SETUP.md. Internal test-ID releases only:
+  -PadmobAllowTestIds=true
+================================================================
+""")
+    }
+    if (releaseTask && releaseUsesTestAdmobIds && admobAllowTestIds) {
+        logger.error("WARNING: Release build is using Google AdMob TEST IDs (-PadmobAllowTestIds=true). Do not upload this AAB as production monetisation.")
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -43,6 +146,7 @@ dependencies {
     implementation "androidx.core:core-splashscreen:$versions.splashscreenVersion"
     implementation "androidx.documentfile:documentfile:$versions.documentfileVersion"
     implementation "com.google.android.gms:play-services-ads:23.6.0"
+    implementation "com.google.android.ump:user-messaging-platform:3.2.0"
 
     if (rootProject.findProject(":lib")) {
         implementation project(":lib")
@@ -145,6 +249,12 @@ android {
         // "pm clear" command after each test invocation. This command ensures
         // that the app's state is completely cleared between tests.
         testInstrumentationRunnerArguments clearPackageData: 'true'
+
+        manifestPlaceholders.admobAppId = resolvedAdmobAppId
+        buildConfigField "String", "ADMOB_BANNER_UNIT", quoteBuildConfig(resolvedAdmobBanner)
+        buildConfigField "String", "ADMOB_INTERSTITIAL_UNIT", quoteBuildConfig(resolvedAdmobInterstitial)
+        buildConfigField "String", "ADMOB_REWARDED_UNIT", quoteBuildConfig(resolvedAdmobRewarded)
+        buildConfigField "boolean", "ADMOB_USING_TEST_IDS", "${releaseUsesTestAdmobIds}"
     }
 
     testOptions {

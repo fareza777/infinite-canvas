@@ -1,6 +1,6 @@
 # Third-Party Notices & Licenses
 
-Ultimate Infinite Canvas 3D Pro is an independent implementation built with Godot 4.
+Infinite Canvas 3D: Whiteboard is an independent implementation built with Godot 4.
 It is inspired by Lorien, but does not copy Lorien source code.
 
 ---
@@ -73,6 +73,12 @@ Apache License, Version 2.0.
 https://fonts.google.com/icons
 
 ---
+
+## Google Mobile Ads / User Messaging Platform
+
+`com.google.android.gms:play-services-ads` and
+`com.google.android.ump:user-messaging-platform` are subject to the Google APIs
+Terms of Service and the Google Play Services Terms of Service.
 
 ## AndroidX / Google Play Billing Library
 

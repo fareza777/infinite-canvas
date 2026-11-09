@@ -1,8 +1,10 @@
-# Privacy Policy — Ultimate Infinite Canvas 3D Pro
+# Privacy Policy — Infinite Canvas 3D: Whiteboard
 
-**Last updated: 2026-11-01** · **Version 3.2.0**
+**Last updated: 2026-11-09** · **Version 3.3.0**
 
-Ultimate Infinite Canvas 3D Pro is an offline-first creative workspace. Your boards stay on
+Hosted at: https://fareza777.github.io/infinitecanvas3d/privacy-policy.html
+
+Infinite Canvas 3D: Whiteboard is an offline-first creative workspace. Your boards stay on
 your device. This policy explains the limited network services used for ads and purchases.
 
 ## Data stored on your device
@@ -17,28 +19,35 @@ your device. This policy explains the limited network services used for ads and 
 Uninstalling removes this private data (subject to the device's Android backup settings). Use
 **Backup** to keep a portable copy.
 
-## Advertising — Google AdMob
+## Advertising — Google AdMob and consent
 
-The app contains the Google Mobile Ads SDK. Ads support the app and can be removed permanently
-with Remove Ads, or for 24 hours with a rewarded ad.
+The app contains the Google Mobile Ads SDK and the Google User Messaging Platform (UMP) SDK.
+Ads support the app and can be removed permanently with Remove Ads, or for 24 hours with an
+optional rewarded ad.
+
+Before any ad request, the app asks UMP to update consent information and shows a consent form
+when required. Ads are initialized and loaded only if `canRequestAds()` is true. Where
+Google reports that privacy options are required, Settings includes a **Privacy options**
+entry to review or change those choices.
 
 AdMob/Google may collect and process:
 
 - device and advertising identifiers,
 - IP address and approximate region,
 - ad request, impression and interaction data,
-- diagnostic data related to ad delivery.
+- diagnostic data related to ad delivery,
+- consent choices gathered through UMP.
 
 This processing is governed by Google's privacy policy. The app does not receive or store your
-boards, notes, media or file contents as part of ad requests. The release build in this
-workspace uses Google's official **test ad IDs**; production builds must replace them with the
-developer's own AdMob IDs and provide any legally required consent (EEA/UK).
+boards, notes, media or file contents as part of ad requests. Debug builds default to Google's
+official **test ad IDs**; production builds must be compiled with the developer's own AdMob IDs.
 
 ## Purchases — Google Play Billing
 
 **Remove Ads** is a one-time in-app purchase processed by Google Play. The app receives the
 product ID, purchase state and token so it can acknowledge and restore the entitlement. The
-developer does not receive card details. There is no subscription and no Pro tier in v3.2.0.
+developer does not receive card details. There is no subscription and no Pro tier in v3.3.0.
+A completed purchase disables banner, interstitial and rewarded ads.
 
 ## Data we do not collect
 
@@ -49,15 +58,17 @@ We do not sell personal data. We do not upload boards or media.
 
 The app connects to the network only for:
 
+- Google User Messaging Platform (consent),
 - Google Mobile Ads (banner/interstitial/rewarded),
 - Google Play Billing (Remove Ads query, purchase, acknowledge, restore).
 
 The **Share app** action opens Android's share sheet with an invite link; **Rate on Play** opens
-the store listing. These are user-initiated hand-offs to other apps and do not upload app data.
+the store listing; **Privacy policy** opens this page. These are user-initiated hand-offs and
+do not upload app data.
 
 ## Permissions
 
-- **Internet / network state** — AdMob and Google Play Billing.
+- **Internet / network state** — AdMob, UMP and Google Play Billing.
 - **Vibrate** — optional haptics.
 - File selections use Android's system document picker. The app does not request broad storage
   or location access.
@@ -70,13 +81,13 @@ knowingly collect personal information from children.
 ## Your choices
 
 - Delete individual boards in the project manager; export a ZIP backup first if desired.
-- Remove ads permanently with the $4.99 Remove Ads purchase, or temporarily with the rewarded
-  ad.
+- Remove ads permanently with the $4.99 Remove Ads purchase, or temporarily with the optional
+  rewarded ad.
+- Open **Privacy options** in Settings when shown, to manage ad consent.
 - Disable haptics in Settings → Tools.
 - Disable autosave, choose a restore-point delay, or clear generated export files in
   Settings → Data.
-- Manage ad personalization through your Google/Android ad settings and, where available, the
-  consent controls required in your region.
+- Manage ad personalization through your Google/Android ad settings.
 
 ## Contact
 
@@ -85,4 +96,5 @@ For privacy questions, contact the developer listed on the Google Play store lis
 
 ## Changes
 
-If this policy changes, the updated version will be published with a new "Last updated" date.
+If this policy changes, the updated version will be published with a new "Last updated" date
+at https://fareza777.github.io/infinitecanvas3d/privacy-policy.html

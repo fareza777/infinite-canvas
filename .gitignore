@@ -3,6 +3,8 @@
 **/.godot/
 *.translation
 export_credentials.cfg
+admob.properties
+android/build/admob.properties
 
 # Build outputs (APK/AAB, zips, signed artifacts, keystore, notes)
 /build/
